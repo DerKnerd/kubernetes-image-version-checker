@@ -18,6 +18,15 @@ import (
 	"strings"
 )
 
+func contains(arr []string, str string) bool {
+	for _, a := range arr {
+		if a == str {
+			return true
+		}
+	}
+	return false
+}
+
 func main() {
 	var (
 		config *rest.Config
@@ -38,6 +47,9 @@ func main() {
 		}
 	}
 
+	ignoreNamespacesVar := os.Getenv("IGNORE_NAMESPACES")
+	ignoreNamespaces := strings.Split(ignoreNamespacesVar, ",")
+
 	log.Println("Create clientset for configuration")
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
@@ -54,6 +66,10 @@ func main() {
 
 	log.Println("Start check for docker images")
 	for _, deployment := range deployments.Items {
+		if contains(ignoreNamespaces, deployment.GetNamespace()) {
+			continue
+		}
+
 		for _, container := range deployment.Spec.Template.Spec.Containers {
 			log.Printf("Check for docker image %s", container.Image)
 			imageAndVersion := strings.Split(container.Image, ":")
