@@ -1,0 +1,15 @@
+{{define "email"}}
+    <html>
+    <body>
+    <p>Hey,</p>
+    <p>
+        We found a newer version for the docker image {{.Image}}. You currently use {{.UsedVersion}}, please upgrade
+        to {{.LatestVersion}}. The affected k8s deployment is {{.Deployment}}
+    </p>
+    <p>
+        Greetings,<br>
+        Docky McDockerface
+    </p>
+    </body>
+    </html>
+{{end}}
