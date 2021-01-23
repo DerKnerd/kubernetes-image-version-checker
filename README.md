@@ -1,10 +1,10 @@
-# Kubernetes Deployment Version Checker
-The Kubernetes Deployment Version Checker (k8s DVC) is small go binary, that checks if any of your Deployments in your cluster have a new version for the container images available. Currently, only images on Dockerhub are supported. It is possible, though, to configure a custom registry host, which will be stripped away.
+# Kubernetes Image Version Checker
+The Kubernetes Image Version Checker (k8s IVC) is small go binary, that checks if any of your Deployments in your cluster have a new version for the container images available. Currently, only images on Dockerhub are supported. It is possible, though, to configure a custom registry host, which will be stripped away.
 
 It notifies the configured email address when new versions are available.
 
 ## Installation
-You can install the k8s DVC as cronjob type in k8s or download this repo and run the binary by hand. The container image is hosted on hub.docker.com under the name `iulbricht/kubernetes-deployment-version-checker`.
+You can install the k8s IVC as cronjob type in k8s or download this repo and run the binary by hand. The container image is hosted on hub.docker.com under the name `iulbricht/kubernetes-deployment-version-checker`.
 
 ## Configuration
 There are a few configuration options. These option control the mailing system and a few image related options.
@@ -59,4 +59,4 @@ spec:
 I plan to add support for DaemonSets and Stateful Sets in a future version. If you want to help, feel free to send a pull request :slightly_smiling_face:.
 
 ## License
-Like all other projects I create, the k8s DVC is distributed under the MIT License.
+Like all other projects I create, the k8s IVC is distributed under the MIT License.
