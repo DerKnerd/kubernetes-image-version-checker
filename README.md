@@ -1,5 +1,5 @@
 # Kubernetes Image Version Checker
-The Kubernetes Image Version Checker (k8s IVC) is small go binary, that checks if any of your Deployments in your cluster have a new version for the container images available. Currently, only images on Dockerhub are supported. It is possible, though, to configure a custom registry host, which will be stripped away.
+The Kubernetes Image Version Checker (k8s IVC) is small go binary, that checks if any of your Deployments, DaemonSets, StatefulSets and CronJobs in your cluster have a new version for the container images available. Currently, only images on Dockerhub are supported. It is possible, though, to configure a custom registry host, which will be stripped away.
 
 It notifies the configured email address when new versions are available.
 
@@ -54,9 +54,6 @@ spec:
                   value: registry.example.com
           restartPolicy: OnFailure
 ```
-
-## Planned additions
-I plan to add support for DaemonSets and Stateful Sets in a future version. If you want to help, feel free to send a pull request :slightly_smiling_face:.
 
 ## License
 Like all other projects I create, the k8s IVC is distributed under the MIT License.

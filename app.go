@@ -64,62 +64,124 @@ func main() {
 
 	log.Printf("Found %d deployments", len(deployments.Items))
 
-	log.Println("Start check for docker images")
+	log.Println("Start check for deployment updates")
 	for _, deployment := range deployments.Items {
 		if contains(ignoreNamespaces, deployment.GetNamespace()) {
 			continue
 		}
 
 		for _, container := range deployment.Spec.Template.Spec.Containers {
-			log.Printf("Check for docker image %s", container.Image)
-			imageAndVersion := strings.Split(container.Image, ":")
-
-			image := imageAndVersion[0]
-			image = strings.ReplaceAll(image, os.Getenv("CUSTOM_REGISTRY_HOST"), "")
-
-			log.Println("Get image version from docker hub")
-			tagList, err := dockerApi.GetVersions(image)
-			if err != nil {
-				log.Println(err.Error())
-				continue
-			}
-
-			if len(imageAndVersion) < 2 || imageAndVersion[1] == "latest" {
-				continue
-			}
-			ver := imageAndVersion[1]
-
-			log.Printf("Found %d tags for image %s", len(tagList.Tags), tagList.Name)
-			log.Printf("Use version %s as constraint version", ver)
-			versionConstraint, _ := version.NewConstraint("> " + ver)
-
-			versions := make([]*version.Version, 0)
-			for _, raw := range tagList.Tags {
-				v, _ := version.NewVersion(raw)
-				if v != nil {
-					versions = append(versions, v)
-				}
-			}
-
-			usedVersion, err := version.NewVersion(ver)
-			if err != nil {
-				log.Println(err.Error())
-				continue
-			}
-
-			sort.Sort(sort.Reverse(version.Collection(versions)))
-			log.Printf("Latest version for %s is %s", tagList.Name, versions[0].String())
-
-			for _, tag := range versions {
-				if versionConstraint.Check(tag) && !tag.LessThanOrEqual(usedVersion) {
-					log.Printf("Found newer version for image %s:%s, newer version is %s", tagList.Name, usedVersion.String(), tag.String())
-					if err = mailing.SendMail(*usedVersion, *tag, image, deployment); err != nil {
-						log.Printf("Failed to send message for image %s", deployment.Name)
-						log.Println(err.Error())
-					}
-					break
-				}
-			}
+			checkContainerForUpdates(container, deployment.GetName(), "deployment")
 		}
 	}
+
+	log.Println("Look for daemon sets on kubernetes cluster")
+	daemonSets, err := clientset.AppsV1().DaemonSets(apiv1.NamespaceAll).List(context.Background(), metav1.ListOptions{})
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	log.Printf("Found %d daemon sets", len(daemonSets.Items))
+
+	log.Println("Start check for daemon set updates")
+	for _, daemonSet := range daemonSets.Items {
+		if contains(ignoreNamespaces, daemonSet.GetNamespace()) {
+			continue
+		}
+
+		for _, container := range daemonSet.Spec.Template.Spec.Containers {
+			checkContainerForUpdates(container, daemonSet.GetName(), "daemon set")
+		}
+	}
+
+	log.Println("Look for daemon sets on kubernetes cluster")
+	statefulSets, err := clientset.AppsV1().StatefulSets(apiv1.NamespaceAll).List(context.Background(), metav1.ListOptions{})
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	log.Printf("Found %d stateful sets", len(statefulSets.Items))
+
+	log.Println("Start check for stateful set updates")
+	for _, statefulSet := range statefulSets.Items {
+		if contains(ignoreNamespaces, statefulSet.GetNamespace()) {
+			continue
+		}
+
+		for _, container := range statefulSet.Spec.Template.Spec.Containers {
+			checkContainerForUpdates(container, statefulSet.GetName(), "stateful set")
+		}
+	}
+
+	log.Println("Look for cron jobs on kubernetes cluster")
+	cronJobs, err := clientset.BatchV1beta1().CronJobs(apiv1.NamespaceAll).List(context.Background(), metav1.ListOptions{})
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	log.Printf("Found %d cron job", len(cronJobs.Items))
+
+	log.Println("Start check for cron job updates")
+	for _, cronJob := range cronJobs.Items {
+		if contains(ignoreNamespaces, cronJob.GetNamespace()) {
+			continue
+		}
+
+		for _, container := range cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers {
+			checkContainerForUpdates(container, cronJob.GetName(), "cron job")
+		}
+	}
+}
+
+func checkContainerForUpdates(container apiv1.Container, parentName string, entityType string) {
+	log.Printf("Check for docker image %s", container.Image)
+	imageAndVersion := strings.Split(container.Image, ":")
+
+	image := imageAndVersion[0]
+	image = strings.ReplaceAll(image, os.Getenv("CUSTOM_REGISTRY_HOST"), "")
+
+	log.Println("Get image version from docker hub")
+	tagList, err := dockerApi.GetVersions(image)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+
+	if len(imageAndVersion) < 2 || imageAndVersion[1] == "latest" {
+		return
+	}
+	ver := imageAndVersion[1]
+
+	log.Printf("Found %d tags for image %s", len(tagList.Tags), tagList.Name)
+	log.Printf("Use version %s as constraint version", ver)
+	versionConstraint, _ := version.NewConstraint("> " + ver)
+
+	versions := make([]*version.Version, 0)
+	for _, raw := range tagList.Tags {
+		v, _ := version.NewVersion(raw)
+		if v != nil {
+			versions = append(versions, v)
+		}
+	}
+
+	usedVersion, err := version.NewVersion(ver)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+
+	sort.Sort(sort.Reverse(version.Collection(versions)))
+	log.Printf("Latest version for %s is %s", tagList.Name, versions[0].String())
+
+	for _, tag := range versions {
+		if versionConstraint.Check(tag) && !tag.LessThanOrEqual(usedVersion) {
+			log.Printf("Found newer version for image %s:%s, newer version is %s", tagList.Name, usedVersion.String(), tag.String())
+			if err = mailing.SendMail(*usedVersion, *tag, image, parentName, entityType); err != nil {
+				log.Printf("Failed to send message for image %s", parentName)
+				log.Println(err.Error())
+			}
+			break
+		}
+	}
+	return
 }

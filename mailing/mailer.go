@@ -6,12 +6,11 @@ import (
 	"github.com/scorredoira/email"
 	"html/template"
 	"io/ioutil"
-	appsv1 "k8s.io/api/apps/v1"
 	"net/smtp"
 	"os"
 )
 
-func SendMail(usedVersion version.Version, latestVersion version.Version, image string, deployment appsv1.Deployment) error {
+func SendMail(usedVersion version.Version, latestVersion version.Version, image string, parentName string, entityType string) error {
 	tmpl, err := template.New("email").ParseFiles("mailing/mail-body.gohtml")
 	if err != nil {
 		return err
@@ -21,7 +20,8 @@ func SendMail(usedVersion version.Version, latestVersion version.Version, image 
 		UsedVersion   string
 		LatestVersion string
 		Image         string
-		Deployment    string
+		ParentName    string
+		EntityType    string
 	}
 
 	buffer := bytes.NewBuffer([]byte{})
@@ -29,7 +29,8 @@ func SendMail(usedVersion version.Version, latestVersion version.Version, image 
 		UsedVersion:   usedVersion.String(),
 		LatestVersion: latestVersion.String(),
 		Image:         image,
-		Deployment:    deployment.GetName(),
+		ParentName:    parentName,
+		EntityType:    entityType,
 	})
 
 	if err != nil {
