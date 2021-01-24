@@ -19,6 +19,7 @@ Variable               | Description
 `MAILING_PORT`         | The port of the mail server
 `IGNORE_NAMESPACES`    | A comma separated list of namespaces to skip. When using microk8s recommend namespaces to exclude are `kube-system`, `kube-public`, `ingress` and `kube-node-lease`
 `CUSTOM_REGISTRY_HOST` | The host of a proxy registry, like Sonatype Nexus. This host is automatically removed from the images
+`MODE`                 | If set to `out` the configuration from `~/.kube-config` will be used, if left unset the kubernetes secret mounted at `/var/run/secrets/kubernetes.io/serviceaccount`
 
 ## Example k8s Cronjob
 ```yaml
