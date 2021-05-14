@@ -114,7 +114,7 @@ func main() {
 	}
 
 	log.Println("Look for cron jobs on kubernetes cluster")
-	cronJobs, err := clientset.BatchV1beta1().CronJobs(apiv1.NamespaceAll).List(context.Background(), metav1.ListOptions{})
+	cronJobs, err := clientset.BatchV1().CronJobs(apiv1.NamespaceAll).List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
