@@ -152,9 +152,12 @@ func checkContainerForUpdates(container apiv1.Container, parentName string, enti
 	}
 	ver := imageAndVersion[1]
 
+	versionAndSuffixSplit := strings.Split(ver, "-")
+	trimmedVersion := versionAndSuffixSplit[0]
+
 	log.Printf("Found %d tags for image %s", len(tagList.Tags), tagList.Name)
 	log.Printf("Use version %s as constraint version", ver)
-	versionConstraint, _ := version.NewConstraint("> " + ver)
+	versionConstraint, _ := version.NewConstraint("> " + trimmedVersion)
 
 	versions := make([]*version.Version, 0)
 	for _, raw := range tagList.Tags {
@@ -164,7 +167,7 @@ func checkContainerForUpdates(container apiv1.Container, parentName string, enti
 		}
 	}
 
-	usedVersion, err := version.NewVersion(ver)
+	usedVersion, err := version.NewVersion(trimmedVersion)
 	if err != nil {
 		log.Println(err.Error())
 		return
@@ -176,7 +179,11 @@ func checkContainerForUpdates(container apiv1.Container, parentName string, enti
 	for _, tag := range versions {
 		if versionConstraint.Check(tag) && !tag.LessThanOrEqual(usedVersion) {
 			log.Printf("Found newer version for image %s:%s, newer version is %s", tagList.Name, usedVersion.String(), tag.String())
-			if err = mailing.SendMail(*usedVersion, *tag, image, parentName, entityType); err != nil {
+			tagVersion := tag.Original()
+			if len(versionAndSuffixSplit) > 1 {
+				tagVersion += "-" + strings.Join(versionAndSuffixSplit[1:], "")
+			}
+			if err = mailing.SendMail(ver, tagVersion, image, parentName, entityType); err != nil {
 				log.Printf("Failed to send message for image %s", parentName)
 				log.Println(err.Error())
 			}

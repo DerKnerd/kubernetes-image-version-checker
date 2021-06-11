@@ -2,7 +2,6 @@ package mailing
 
 import (
 	"bytes"
-	"github.com/hashicorp/go-version"
 	"github.com/scorredoira/email"
 	"html/template"
 	"io/ioutil"
@@ -10,7 +9,7 @@ import (
 	"os"
 )
 
-func SendMail(usedVersion version.Version, latestVersion version.Version, image string, parentName string, entityType string) error {
+func SendMail(usedVersion string, latestVersion string, image string, parentName string, entityType string) error {
 	tmpl, err := template.New("email").ParseFiles("mailing/mail-body.gohtml")
 	if err != nil {
 		return err
@@ -26,8 +25,8 @@ func SendMail(usedVersion version.Version, latestVersion version.Version, image 
 
 	buffer := bytes.NewBuffer([]byte{})
 	err = tmpl.Execute(buffer, tmplData{
-		UsedVersion:   usedVersion.String(),
-		LatestVersion: latestVersion.String(),
+		UsedVersion:   usedVersion,
+		LatestVersion: latestVersion,
 		Image:         image,
 		ParentName:    parentName,
 		EntityType:    entityType,
