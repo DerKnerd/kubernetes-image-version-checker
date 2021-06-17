@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/hashicorp/go-version"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -14,8 +15,11 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
+	"strconv"
 	"strings"
+	"sync"
 )
 
 func contains(arr []string, str string) bool {
@@ -27,20 +31,27 @@ func contains(arr []string, str string) bool {
 	return false
 }
 
+type containerData struct {
+	container  apiv1.Container
+	parentName string
+	entityType string
+}
+
 func main() {
 	var (
+		wg     = &sync.WaitGroup{}
 		config *rest.Config
 		err    error
 	)
 	if os.Getenv("MODE") == "out" {
-		log.Println("Started in out cluster mode")
+		log.Println("MAIN:  Started in out cluster mode")
 		home := homedir.HomeDir()
 		config, err = clientcmd.BuildConfigFromFlags("", filepath.Join(home, ".kube", "config"))
 		if err != nil {
 			log.Fatalln(err.Error())
 		}
 	} else {
-		log.Println("Started in in cluster mode")
+		log.Println("MAIN:  Started in in cluster mode")
 		config, err = rest.InClusterConfig()
 		if err != nil {
 			log.Fatalln(err.Error())
@@ -50,100 +61,148 @@ func main() {
 	ignoreNamespacesVar := os.Getenv("IGNORE_NAMESPACES")
 	ignoreNamespaces := strings.Split(ignoreNamespacesVar, ",")
 
-	log.Println("Create clientset for configuration")
+	log.Printf("MAIN:  Found %d CPUs", runtime.NumCPU())
+	wg.Add(runtime.NumCPU())
+	containerChan := make(chan containerData)
+	logChan := make(chan string)
+
+	for i := 0; i < runtime.NumCPU(); i++ {
+		log.Printf("MAIN:  Start process on cpu %d", i)
+		go processContainer(wg, containerChan, logChan, i)
+	}
+
+	go func(logChan chan string) {
+		for logEntry := range logChan {
+			log.Println(logEntry)
+		}
+	}(logChan)
+
+	log.Println("MAIN:  Create clientset for configuration")
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
 
-	log.Println("Look for deployments on kubernetes cluster")
+	log.Println("MAIN:  Look for deployments on kubernetes cluster")
 	deployments, err := clientset.AppsV1().Deployments(apiv1.NamespaceAll).List(context.Background(), metav1.ListOptions{})
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Println(err.Error())
+	} else {
+		log.Printf("MAIN:  Found %d deployments", len(deployments.Items))
+
+		log.Println("MAIN:  Start check for deployment updates")
+		for _, deployment := range deployments.Items {
+			if contains(ignoreNamespaces, deployment.GetNamespace()) {
+				continue
+			}
+
+			for _, container := range deployment.Spec.Template.Spec.Containers {
+				containerChan <- containerData{
+					container:  container,
+					parentName: deployment.GetName(),
+					entityType: "deployment",
+				}
+			}
+		}
 	}
 
-	log.Printf("Found %d deployments", len(deployments.Items))
-
-	log.Println("Start check for deployment updates")
-	for _, deployment := range deployments.Items {
-		if contains(ignoreNamespaces, deployment.GetNamespace()) {
-			continue
-		}
-
-		for _, container := range deployment.Spec.Template.Spec.Containers {
-			checkContainerForUpdates(container, deployment.GetName(), "deployment")
-		}
-	}
-
-	log.Println("Look for daemon sets on kubernetes cluster")
+	log.Println("MAIN:  Look for daemon sets on kubernetes cluster")
 	daemonSets, err := clientset.AppsV1().DaemonSets(apiv1.NamespaceAll).List(context.Background(), metav1.ListOptions{})
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Println(err.Error())
+	} else {
+		log.Printf("MAIN:  Found %d daemon sets", len(daemonSets.Items))
+
+		log.Println("MAIN:  Start check for daemon set updates")
+		for _, daemonSet := range daemonSets.Items {
+			if contains(ignoreNamespaces, daemonSet.GetNamespace()) {
+				continue
+			}
+
+			for _, container := range daemonSet.Spec.Template.Spec.Containers {
+				containerChan <- containerData{
+					container:  container,
+					parentName: daemonSet.GetName(),
+					entityType: "daemon set",
+				}
+			}
+		}
 	}
 
-	log.Printf("Found %d daemon sets", len(daemonSets.Items))
-
-	log.Println("Start check for daemon set updates")
-	for _, daemonSet := range daemonSets.Items {
-		if contains(ignoreNamespaces, daemonSet.GetNamespace()) {
-			continue
-		}
-
-		for _, container := range daemonSet.Spec.Template.Spec.Containers {
-			checkContainerForUpdates(container, daemonSet.GetName(), "daemon set")
-		}
-	}
-
-	log.Println("Look for daemon sets on kubernetes cluster")
+	log.Println("MAIN:  Look for stateful sets on kubernetes cluster")
 	statefulSets, err := clientset.AppsV1().StatefulSets(apiv1.NamespaceAll).List(context.Background(), metav1.ListOptions{})
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Println(err.Error())
+	} else {
+		log.Printf("MAIN:  Found %d stateful sets", len(statefulSets.Items))
+
+		log.Println("MAIN:  Start check for stateful set updates")
+		for _, statefulSet := range statefulSets.Items {
+			if contains(ignoreNamespaces, statefulSet.GetNamespace()) {
+				continue
+			}
+
+			for _, container := range statefulSet.Spec.Template.Spec.Containers {
+				containerChan <- containerData{
+					container:  container,
+					parentName: statefulSet.GetName(),
+					entityType: "stateful set",
+				}
+			}
+		}
 	}
 
-	log.Printf("Found %d stateful sets", len(statefulSets.Items))
-
-	log.Println("Start check for stateful set updates")
-	for _, statefulSet := range statefulSets.Items {
-		if contains(ignoreNamespaces, statefulSet.GetNamespace()) {
-			continue
-		}
-
-		for _, container := range statefulSet.Spec.Template.Spec.Containers {
-			checkContainerForUpdates(container, statefulSet.GetName(), "stateful set")
-		}
-	}
-
-	log.Println("Look for cron jobs on kubernetes cluster")
+	log.Println("MAIN:  Look for cron jobs on kubernetes cluster")
 	cronJobs, err := clientset.BatchV1().CronJobs(apiv1.NamespaceAll).List(context.Background(), metav1.ListOptions{})
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Println(err.Error())
+	} else {
+		log.Printf("MAIN:  Found %d cron job", len(cronJobs.Items))
+
+		log.Println("MAIN:  Start check for cron job updates")
+		for _, cronJob := range cronJobs.Items {
+			if contains(ignoreNamespaces, cronJob.GetNamespace()) {
+				continue
+			}
+
+			for _, container := range cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers {
+				containerChan <- containerData{
+					container:  container,
+					parentName: cronJob.GetName(),
+					entityType: "cron job",
+				}
+			}
+		}
 	}
 
-	log.Printf("Found %d cron job", len(cronJobs.Items))
+	close(containerChan)
 
-	log.Println("Start check for cron job updates")
-	for _, cronJob := range cronJobs.Items {
-		if contains(ignoreNamespaces, cronJob.GetNamespace()) {
-			continue
-		}
-
-		for _, container := range cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers {
-			checkContainerForUpdates(container, cronJob.GetName(), "cron job")
-		}
-	}
+	wg.Wait()
+	close(logChan)
 }
 
-func checkContainerForUpdates(container apiv1.Container, parentName string, entityType string) {
-	log.Printf("Check for docker image %s", container.Image)
+func processContainer(wg *sync.WaitGroup, containerChan chan containerData, logChan chan string, idx int) {
+	for c := range containerChan {
+		checkContainerForUpdates(c.container, c.parentName, c.entityType, logChan, idx)
+	}
+	logChan <- fmt.Sprintf("CPU %d: Process ended", idx)
+	wg.Done()
+}
+
+func checkContainerForUpdates(container apiv1.Container, parentName string, entityType string, logChan chan string, idx int) {
+	logf := func(message string, data ...interface{}) {
+		logChan <- fmt.Sprintf("CPU "+strconv.Itoa(idx)+": "+message, data...)
+	}
+	logf("Check for docker image %s", container.Image)
 	imageAndVersion := strings.Split(container.Image, ":")
 
 	image := imageAndVersion[0]
 	image = strings.ReplaceAll(image, os.Getenv("CUSTOM_REGISTRY_HOST"), "")
 
-	log.Println("Get image version from docker hub")
-	tagList, err := dockerApi.GetVersions(image)
+	logf("Get image version from docker hub")
+	tagList, err := dockerApi.GetVersions(image, logf)
 	if err != nil {
-		log.Println(err.Error())
+		logf(err.Error())
 		return
 	}
 
@@ -155,8 +214,8 @@ func checkContainerForUpdates(container apiv1.Container, parentName string, enti
 	versionAndSuffixSplit := strings.Split(ver, "-")
 	trimmedVersion := versionAndSuffixSplit[0]
 
-	log.Printf("Found %d tags for image %s", len(tagList.Tags), tagList.Name)
-	log.Printf("Use version %s as constraint version", ver)
+	logf("Found %d tags for image %s", len(tagList.Tags), tagList.Name)
+	logf("Use version %s as constraint version", ver)
 	versionConstraint, _ := version.NewConstraint("> " + trimmedVersion)
 
 	versions := make([]*version.Version, 0)
@@ -169,23 +228,23 @@ func checkContainerForUpdates(container apiv1.Container, parentName string, enti
 
 	usedVersion, err := version.NewVersion(trimmedVersion)
 	if err != nil {
-		log.Println(err.Error())
+		logf(err.Error())
 		return
 	}
 
 	sort.Sort(sort.Reverse(version.Collection(versions)))
-	log.Printf("Latest version for %s is %s", tagList.Name, versions[0].String())
+	logf("Latest version for %s is %s", tagList.Name, versions[0].String())
 
 	for _, tag := range versions {
 		if versionConstraint.Check(tag) && !tag.LessThanOrEqual(usedVersion) {
-			log.Printf("Found newer version for image %s:%s, newer version is %s", tagList.Name, usedVersion.String(), tag.String())
+			logf("Found newer version for image %s:%s, newer version is %s", tagList.Name, usedVersion.String(), tag.String())
 			tagVersion := tag.Original()
 			if len(versionAndSuffixSplit) > 1 {
 				tagVersion += "-" + strings.Join(versionAndSuffixSplit[1:], "")
 			}
 			if err = mailing.SendMail(ver, tagVersion, image, parentName, entityType); err != nil {
-				log.Printf("Failed to send message for image %s", parentName)
-				log.Println(err.Error())
+				logf("Failed to send message for image %s", parentName)
+				logf(err.Error())
 			}
 			break
 		}

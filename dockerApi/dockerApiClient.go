@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
@@ -19,18 +18,17 @@ type TagList struct {
 
 var CheckedImages = map[string]*TagList{}
 
-func GetVersions(image string) (*TagList, error) {
-	log.Printf("Check if %s is in cache", image)
+func GetVersions(image string, logf func(message string, data ...interface{})) (*TagList, error) {
+	logf("Check if %s is in cache", image)
 	if CheckedImages[image] != nil {
 		return CheckedImages[image], nil
 	}
 
-	log.Println("Run authentication request")
+	logf("Run authentication request")
 	authResponse, err := http.DefaultClient.Get("https://auth.docker.io/token?service=registry.docker.io&scope=repository:" + image + ":pull")
 	if err != nil {
 		return nil, err
 	}
-
 	if authResponse.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("failed to login")
 	}
@@ -46,8 +44,8 @@ func GetVersions(image string) (*TagList, error) {
 		return nil, fmt.Errorf("failed to unmarshal body")
 	}
 
-	log.Println("Got api token")
-	log.Printf("Get all tags for image %s", image)
+	logf("Got api token")
+	logf("Get all tags for image %s", image)
 	req, err := http.NewRequest(http.MethodGet, "https://registry-1.docker.io/v2/"+image+"/tags/list", nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request")
