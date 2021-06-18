@@ -10,7 +10,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
-	"kubernetes-pod-version-checker/dockerApi"
+	"kubernetes-pod-version-checker/containerApi"
 	"kubernetes-pod-version-checker/mailing"
 	"log"
 	"os"
@@ -193,14 +193,13 @@ func checkContainerForUpdates(container apiv1.Container, parentName string, enti
 	logf := func(message string, data ...interface{}) {
 		logChan <- fmt.Sprintf("CPU "+strconv.Itoa(idx)+": "+message, data...)
 	}
-	logf("Check for docker image %s", container.Image)
+	logf("Check for container image %s", container.Image)
 	imageAndVersion := strings.Split(container.Image, ":")
 
 	image := imageAndVersion[0]
 	image = strings.ReplaceAll(image, os.Getenv("CUSTOM_REGISTRY_HOST"), "")
 
-	logf("Get image version from docker hub")
-	tagList, err := dockerApi.GetVersions(image, logf)
+	tagList, err := containerApi.GetVersions(image, logf)
 	if err != nil {
 		logf(err.Error())
 		return
