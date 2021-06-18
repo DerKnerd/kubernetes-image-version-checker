@@ -56,5 +56,8 @@ spec:
           restartPolicy: OnFailure
 ```
 
+## Found a bug?
+If you found a bug feel free to create an issue on Github or on my personal Taiga instance: https://taiga.imanuel.dev/project/kubernetes-version-check/
+
 ## License
 Like all other projects I create, the k8s IVC is distributed under the MIT License.
