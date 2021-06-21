@@ -33,8 +33,8 @@ spec:
                     sh "docker build -t quay.imanuel.dev/imanuel/kubernetes-version-checker:$BUILD_NUMBER -f ./Dockerfile ."
                     sh "docker tag quay.imanuel.dev/imanuel/kubernetes-version-checker:$BUILD_NUMBER quay.imanuel.dev/imanuel/kubernetes-version-checker:latest"
 
-                    sh "docker tag quay.imanuel.dev/imanuel/kubernetes-image-version-checker:$BUILD_NUMBER iulbricht/kubernetes-image-version-checker:$BUILD_NUMBER"
-                    sh "docker tag quay.imanuel.dev/imanuel/kubernetes-image-version-checker:$BUILD_NUMBER iulbricht/kubernetes-image-version-checker:latest"
+                    sh "docker tag quay.imanuel.dev/imanuel/kubernetes-version-checker:$BUILD_NUMBER iulbricht/kubernetes-image-version-checker:$BUILD_NUMBER"
+                    sh "docker tag quay.imanuel.dev/imanuel/kubernetes-version-checker:$BUILD_NUMBER iulbricht/kubernetes-image-version-checker:latest"
 
                     withDockerRegistry(credentialsId: 'quay.imanuel.dev', url: 'https://quay.imanuel.dev') {
                         sh "docker push quay.imanuel.dev/imanuel/kubernetes-version-checker:$BUILD_NUMBER"
