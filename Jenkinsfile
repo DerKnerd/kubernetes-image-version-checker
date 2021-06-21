@@ -30,12 +30,15 @@ spec:
         stage('Push') {
             steps {
                 container('docker') {
-                    sh "docker build -t registry-hosted.imanuel.dev/tools/kubernetes-image-version-checker:$BUILD_NUMBER -f ./Dockerfile ."
-                    sh "docker tag registry-hosted.imanuel.dev/tools/kubernetes-image-version-checker:$BUILD_NUMBER iulbricht/kubernetes-image-version-checker:$BUILD_NUMBER"
-                    sh "docker tag registry-hosted.imanuel.dev/tools/kubernetes-image-version-checker:$BUILD_NUMBER iulbricht/kubernetes-image-version-checker:latest"
+                    sh "docker build -t quay.imanuel.dev/imanuel/kubernetes-image-version-checker:$BUILD_NUMBER -f ./Dockerfile ."
+                    sh "docker tag quay.imanuel.dev/imanuel/kubernetes-image-version-checker:$BUILD_NUMBER quay.imanuel.dev/imanuel/kubernetes-image-version-checker:latest"
 
-                    withDockerRegistry(credentialsId: 'nexus.imanuel.dev', url: 'https://registry-hosted.imanuel.dev') {
-                        sh "docker push registry-hosted.imanuel.dev/tools/kubernetes-image-version-checker:$BUILD_NUMBER"
+                    sh "docker tag quay.imanuel.dev/imanuel/kubernetes-image-version-checker:$BUILD_NUMBER iulbricht/kubernetes-image-version-checker:$BUILD_NUMBER"
+                    sh "docker tag quay.imanuel.dev/imanuel/kubernetes-image-version-checker:$BUILD_NUMBER iulbricht/kubernetes-image-version-checker:latest"
+
+                    withDockerRegistry(credentialsId: 'nexus.imanuel.dev', url: 'https://quay.imanuel.dev') {
+                        sh "docker push quay.imanuel.dev/imanuel/kubernetes-image-version-checker:$BUILD_NUMBER"
+                        sh "docker push quay.imanuel.dev/imanuel/kubernetes-image-version-checker:latest"
                     }
                     withDockerRegistry(credentialsId: 'hub.docker.com', url: '') {
                         sh "docker push iulbricht/kubernetes-image-version-checker:$BUILD_NUMBER"
