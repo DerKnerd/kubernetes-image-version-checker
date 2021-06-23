@@ -15,7 +15,7 @@ spec:
         path: /var/run/docker.sock
   containers:
   - name: docker
-    image: docker:latest
+    image: quay.imanuel.dev/dockerhub/library---docker:stable
     command:
     - cat
     tty: true
