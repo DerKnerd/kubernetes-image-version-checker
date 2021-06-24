@@ -63,25 +63,14 @@ func main() {
 
 	log.Printf("MAIN:  Found %d CPUs", runtime.NumCPU())
 	wg.Add(runtime.NumCPU())
-	containerChan := make(chan containerData)
-	logChan := make(chan string)
-
-	for i := 0; i < runtime.NumCPU(); i++ {
-		log.Printf("MAIN:  Start process on cpu %d", i)
-		go processContainer(wg, containerChan, logChan, i)
-	}
-
-	go func(logChan chan string) {
-		for logEntry := range logChan {
-			log.Println(logEntry)
-		}
-	}(logChan)
 
 	log.Println("MAIN:  Create clientset for configuration")
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
+
+	containers := make([]containerData, 0)
 
 	log.Println("MAIN:  Look for deployments on kubernetes cluster")
 	deployments, err := clientset.AppsV1().Deployments(apiv1.NamespaceAll).List(context.Background(), metav1.ListOptions{})
@@ -97,11 +86,11 @@ func main() {
 			}
 
 			for _, container := range deployment.Spec.Template.Spec.Containers {
-				containerChan <- containerData{
+				containers = append(containers, containerData{
 					container:  container,
 					parentName: deployment.GetName(),
 					entityType: "deployment",
-				}
+				})
 			}
 		}
 	}
@@ -120,11 +109,11 @@ func main() {
 			}
 
 			for _, container := range daemonSet.Spec.Template.Spec.Containers {
-				containerChan <- containerData{
+				containers = append(containers, containerData{
 					container:  container,
 					parentName: daemonSet.GetName(),
 					entityType: "daemon set",
-				}
+				})
 			}
 		}
 	}
@@ -143,11 +132,11 @@ func main() {
 			}
 
 			for _, container := range statefulSet.Spec.Template.Spec.Containers {
-				containerChan <- containerData{
+				containers = append(containers, containerData{
 					container:  container,
 					parentName: statefulSet.GetName(),
 					entityType: "stateful set",
-				}
+				})
 			}
 		}
 	}
@@ -166,13 +155,31 @@ func main() {
 			}
 
 			for _, container := range cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers {
-				containerChan <- containerData{
+				containers = append(containers, containerData{
 					container:  container,
 					parentName: cronJob.GetName(),
 					entityType: "cron job",
-				}
+				})
 			}
 		}
+	}
+
+	containerChan := make(chan containerData)
+	logChan := make(chan string)
+
+	for i := 0; i < runtime.NumCPU(); i++ {
+		log.Printf("MAIN:  Start process on cpu %d", i)
+		go processContainer(wg, containerChan, logChan, i)
+	}
+
+	go func(logChan chan string) {
+		for logEntry := range logChan {
+			log.Println(logEntry)
+		}
+	}(logChan)
+
+	for _, container := range containers {
+		containerChan <- container
 	}
 
 	close(containerChan)
@@ -183,16 +190,16 @@ func main() {
 
 func processContainer(wg *sync.WaitGroup, containerChan chan containerData, logChan chan string, idx int) {
 	for c := range containerChan {
-		checkContainerForUpdates(c.container, c.parentName, c.entityType, logChan, idx)
+		logf := func(message string, data ...interface{}) {
+			logChan <- fmt.Sprintf("CPU "+strconv.Itoa(idx)+": "+message, data...)
+		}
+		checkContainerForUpdates(c.container, c.parentName, c.entityType, logf)
 	}
 	logChan <- fmt.Sprintf("CPU %d: Process ended", idx)
 	wg.Done()
 }
 
-func checkContainerForUpdates(container apiv1.Container, parentName string, entityType string, logChan chan string, idx int) {
-	logf := func(message string, data ...interface{}) {
-		logChan <- fmt.Sprintf("CPU "+strconv.Itoa(idx)+": "+message, data...)
-	}
+func checkContainerForUpdates(container apiv1.Container, parentName string, entityType string, logf func(message string, data ...interface{})) {
 	logf("Check for container image %s", container.Image)
 	imageAndVersion := strings.Split(container.Image, ":")
 
@@ -232,21 +239,19 @@ func checkContainerForUpdates(container apiv1.Container, parentName string, enti
 	}
 
 	sort.Sort(sort.Reverse(version.Collection(versions)))
+	tag := versions[0]
 	logf("Latest version for %s is %s", tagList.Name, versions[0].String())
-
-	for _, tag := range versions {
-		if versionConstraint.Check(tag) && !tag.LessThanOrEqual(usedVersion) {
-			logf("Found newer version for image %s:%s, newer version is %s", tagList.Name, usedVersion.String(), tag.String())
-			tagVersion := tag.Original()
-			if len(versionAndSuffixSplit) > 1 {
-				tagVersion += "-" + strings.Join(versionAndSuffixSplit[1:], "")
-			}
-			if err = mailing.SendMail(ver, tagVersion, image, parentName, entityType); err != nil {
-				logf("Failed to send message for image %s", parentName)
-				logf(err.Error())
-			}
-			break
+	if versionConstraint.Check(tag) && !tag.LessThanOrEqual(usedVersion) {
+		logf("Found newer version for image %s:%s, newer version is %s", tagList.Name, usedVersion.String(), tag.String())
+		tagVersion := tag.Original()
+		if len(versionAndSuffixSplit) > 1 {
+			tagVersion += "-" + strings.Join(versionAndSuffixSplit[1:], "")
+		}
+		if err = mailing.SendMail(ver, tagVersion, image, parentName, entityType); err != nil {
+			logf("Failed to send message for image %s", parentName)
+			logf(err.Error())
 		}
 	}
+
 	return
 }
