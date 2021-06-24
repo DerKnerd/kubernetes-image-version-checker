@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"sync"
 )
 
 type authentication struct {
@@ -21,12 +22,17 @@ var CheckedImages = map[string]*TagList{}
 
 const quayIoPrefix = "quay.io"
 
+var checkImageMutex = sync.Mutex{}
+
 func GetVersions(image string, logf func(message string, data ...interface{})) (*TagList, error) {
 	tags := new(TagList)
 	logf("Check if %s is in cache", image)
+	checkImageMutex.Lock()
 	if CheckedImages[image] != nil {
+		defer checkImageMutex.Unlock()
 		return CheckedImages[image], nil
 	}
+	checkImageMutex.Unlock()
 
 	if strings.HasPrefix(image, quayIoPrefix) {
 		logf("Get image version from quay.io")
@@ -112,7 +118,9 @@ func GetVersions(image string, logf func(message string, data ...interface{})) (
 		}
 	}
 
+	checkImageMutex.Lock()
 	CheckedImages[image] = tags
+	checkImageMutex.Unlock()
 
 	return tags, nil
 }
