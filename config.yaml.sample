@@ -1,0 +1,25 @@
+cluster_mode: out
+ignore_namespaces:
+  - lens-metrics
+mailer:
+  to:
+    - noreply@example.com
+  from: noreply@example.com
+  username: noreply@example.com
+  password: start1234
+  host: localhost
+  port: 25
+registries:
+  - name: Docker Hub
+    host: registry-1.docker.io
+    auth_host: auth.docker.io
+    type: dockerhub
+    username: username
+    token: token
+  - name: quay.io
+    host: quay.io
+    type: quay
+  - name: quay.example.com
+    host: quay.example.com
+    type: quay
+    token: 60Tb2IIROL2ASIHpMSe4zGVza

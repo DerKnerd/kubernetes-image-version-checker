@@ -21,6 +21,13 @@ Variable               | Description
 `CUSTOM_REGISTRY_HOST` | The host of a proxy registry, like Sonatype Nexus. This host is automatically removed from the images
 `MODE`                 | If set to `out` the configuration from `~/.kube-config` will be used, if left unset the kubernetes secret mounted at `/var/run/secrets/kubernetes.io/serviceaccount`
 
+### Changes introduced in v2
+Version v2 introduced the option to use a config file instead of environment variables. The main change is, that you can provide authentication tokens for hub.docker.com, quay.io and custom registries based on quay. Apart from that you can now specify multiple recipients for the update notice emails and define custom quay hosts.
+
+A sample configuration can be found in the file `config.yaml.sample`.
+
+The configuration via environment variables is deprecated and will be removed in v3.
+
 ## Example k8s Cronjob
 ```yaml
 apiVersion: batch/v1

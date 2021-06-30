@@ -1,0 +1,7 @@
+version: '3.9'
+services:
+  k8s-mailhog:
+    image: mailhog/mailhog:latest
+    ports:
+    - 1225:1025
+    - 8225:8025

@@ -6,31 +6,45 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/smtp"
-	"os"
 )
 
-func SendMail(usedVersion string, latestVersion string, image string, parentName string, entityType string) error {
+type Message struct {
+	UsedVersion   string
+	LatestVersion string
+	Image         string
+	ParentName    string
+	EntityType    string
+	Cpu           int
+}
+
+type Mailer struct {
+	To       []string `yaml:"to"`
+	From     string   `yaml:"from"`
+	Username string   `yaml:"username"`
+	Password string   `yaml:"password"`
+	Host     string   `yaml:"host"`
+	Port     string   `yaml:"port"`
+}
+
+func New(to []string, from string, username string, password string, host string, port string) *Mailer {
+	return &Mailer{
+		To:       to,
+		From:     from,
+		Username: username,
+		Password: password,
+		Host:     host,
+		Port:     port,
+	}
+}
+
+func (mailer Mailer) SendMail(message Message) error {
 	tmpl, err := template.New("email").ParseFiles("mailing/mail-body.gohtml")
 	if err != nil {
 		return err
 	}
 
-	type tmplData struct {
-		UsedVersion   string
-		LatestVersion string
-		Image         string
-		ParentName    string
-		EntityType    string
-	}
-
 	buffer := bytes.NewBuffer([]byte{})
-	err = tmpl.Execute(buffer, tmplData{
-		UsedVersion:   usedVersion,
-		LatestVersion: latestVersion,
-		Image:         image,
-		ParentName:    parentName,
-		EntityType:    entityType,
-	})
+	err = tmpl.Execute(buffer, message)
 
 	if err != nil {
 		return err
@@ -41,22 +55,15 @@ func SendMail(usedVersion string, latestVersion string, image string, parentName
 		return err
 	}
 
-	to := os.Getenv("MAILING_TO")
-	from := os.Getenv("MAILING_FROM")
-	username := os.Getenv("MAILING_USERNAME")
-	password := os.Getenv("MAILING_PASSWORD")
-	host := os.Getenv("MAILING_HOST")
-	port := os.Getenv("MAILING_PORT")
-
-	message := email.NewHTMLMessage("New version for image "+image, string(body))
-	message.To = []string{to}
-	message.From.Address = from
-	message.BodyContentType = "text/html"
+	htmlMessage := email.NewHTMLMessage("New version for image "+message.Image, string(body))
+	htmlMessage.To = mailer.To
+	htmlMessage.From.Address = mailer.From
+	htmlMessage.BodyContentType = "text/html"
 
 	var auth smtp.Auth
-	if username != "" && password != "" {
-		auth = smtp.PlainAuth("", username, password, host)
+	if mailer.Username != "" && mailer.Password != "" {
+		auth = smtp.PlainAuth("", mailer.Username, mailer.Password, mailer.Host)
 	}
 
-	return email.Send(host+":"+port, auth, message)
+	return email.Send(mailer.Host+":"+mailer.Port, auth, htmlMessage)
 }
