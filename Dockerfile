@@ -7,5 +7,6 @@ RUN go build -o /kubernetes-deployment-version-checker
 FROM quay.imanuel.dev/dockerhub/library---alpine:latest
 
 COPY --from=build /kubernetes-deployment-version-checker /kubernetes-deployment-version-checker
+COPY --from=build /app/mailing/mail-body.gohtml /mailing/mail-body.gohtml
 
 CMD ["/kubernetes-deployment-version-checker"]
