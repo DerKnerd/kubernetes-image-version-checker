@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	configTypeFlag = flag.String("config-mode", "env", "Set env for environment configuration and, file for config file based configuration")
+	configTypeFlag = flag.String("config-mode", "file", "Set env for environment configuration and, file for config file based configuration")
 	configFileFlag = flag.String("config-file", "", "Sets the config file path")
 )
 
