@@ -5,17 +5,9 @@ import (
 	"github.com/scorredoira/email"
 	"html/template"
 	"io/ioutil"
+	"kubernetes-pod-version-checker/messaging"
 	"net/smtp"
 )
-
-type Message struct {
-	UsedVersion   string
-	LatestVersion string
-	Image         string
-	ParentName    string
-	EntityType    string
-	Cpu           int
-}
 
 type Mailer struct {
 	To       []string `yaml:"to"`
@@ -37,7 +29,7 @@ func New(to []string, from string, username string, password string, host string
 	}
 }
 
-func (mailer Mailer) SendMail(message Message) error {
+func (mailer Mailer) SendMail(message messaging.Message) error {
 	tmpl, err := template.New("email").ParseFiles("mailing/mail-body.gohtml")
 	if err != nil {
 		return err

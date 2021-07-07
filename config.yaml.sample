@@ -23,3 +23,6 @@ registries:
     host: quay.example.com
     type: quay
     token: 60Tb2IIROL2ASIHpMSe4zGVza
+telegram:
+  channel_id: -10012731422234421
+  bot_token: 187666612442423481:AAFVWuP8wguN6vl0p8Ey1hPzoSPFHtsOjHGZCxICk

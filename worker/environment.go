@@ -4,7 +4,8 @@ import (
 	"kubernetes-pod-version-checker/container"
 	"kubernetes-pod-version-checker/kubernetes"
 	"kubernetes-pod-version-checker/logging"
-	"kubernetes-pod-version-checker/mailing"
+	"kubernetes-pod-version-checker/messaging"
+	"kubernetes-pod-version-checker/messaging/mailing"
 	"kubernetes-pod-version-checker/worker/environment"
 	"log"
 	"os"
@@ -33,7 +34,7 @@ func ExecuteWithEnvironment() error {
 
 	containerChan := make(chan container.Details)
 	logChan := make(chan string)
-	mailChan := make(chan mailing.Message)
+	mailChan := make(chan messaging.Message)
 
 	for i := 0; i < runtime.NumCPU(); i++ {
 		log.Printf("MAIN:  Start process on cpu %d", i)

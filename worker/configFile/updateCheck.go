@@ -5,7 +5,7 @@ import (
 	"kubernetes-pod-version-checker/container"
 	"kubernetes-pod-version-checker/container/docker"
 	"kubernetes-pod-version-checker/container/quay"
-	"kubernetes-pod-version-checker/mailing"
+	"kubernetes-pod-version-checker/messaging"
 	"strings"
 )
 
@@ -19,8 +19,8 @@ func findRegistry(registries []container.Registry, image string) (*container.Reg
 	return nil, false
 }
 
-func CheckContainerForUpdates(registries []container.Registry) func(apiv1.Container, string, string, chan mailing.Message, int, func(string, ...interface{})) {
-	return func(c apiv1.Container, parentName string, entityType string, mailChan chan mailing.Message, cpu int, logf func(message string, data ...interface{})) {
+func CheckContainerForUpdates(registries []container.Registry) func(apiv1.Container, string, string, chan messaging.Message, int, func(string, ...interface{})) {
+	return func(c apiv1.Container, parentName string, entityType string, mailChan chan messaging.Message, cpu int, logf func(message string, data ...interface{})) {
 		logf("Check for container image %s", c.Image)
 		imageAndVersion := strings.Split(c.Image, ":")
 
@@ -60,7 +60,7 @@ func CheckContainerForUpdates(registries []container.Registry) func(apiv1.Contai
 
 		tagVersion, outdated := container.CheckVersions(currentVersion, tagList, logf)
 		if outdated {
-			mailChan <- mailing.Message{
+			mailChan <- messaging.Message{
 				UsedVersion:   currentVersion,
 				LatestVersion: tagVersion,
 				Image:         image,

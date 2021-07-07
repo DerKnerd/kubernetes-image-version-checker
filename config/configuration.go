@@ -4,7 +4,8 @@ import (
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"kubernetes-pod-version-checker/container"
-	"kubernetes-pod-version-checker/mailing"
+	"kubernetes-pod-version-checker/messaging/mailing"
+	"kubernetes-pod-version-checker/messaging/telegram"
 )
 
 type Configuration struct {
@@ -12,6 +13,7 @@ type Configuration struct {
 	IgnoreNamespaces []string             `yaml:"ignore_namespaces"`
 	Mode             string               `yaml:"cluster_mode"`
 	Mailer           mailing.Mailer       `yaml:"mailer"`
+	TelegramClient   *telegram.Client     `yaml:"telegram,omitempty"`
 }
 
 func ParseConfig(path string) (*Configuration, error) {
