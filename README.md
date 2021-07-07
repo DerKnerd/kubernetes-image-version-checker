@@ -7,6 +7,11 @@ It notifies the configured email address when new versions are available.
 You can install the k8s IVC as cronjob type in k8s or download this repo and run the binary by hand. The container image is hosted on hub.docker.com under the name `iulbricht/kubernetes-deployment-version-checker`.
 
 ## Configuration
+Version v2 introduced the option to use a config file instead of environment variables. The main change is, that you can provide authentication tokens for hub.docker.com, quay.io and custom registries based on quay. Apart from that you can now specify multiple recipients for the update notice emails and define custom quay hosts.
+
+A sample configuration can be found in the file `config.yaml.sample`.
+
+### Environment based
 There are a few configuration options. These option control the mailing system and a few image related options.
 
 Variable               | Description
@@ -20,11 +25,6 @@ Variable               | Description
 `IGNORE_NAMESPACES`    | A comma separated list of namespaces to skip. When using microk8s recommend namespaces to exclude are `kube-system`, `kube-public`, `ingress` and `kube-node-lease`
 `CUSTOM_REGISTRY_HOST` | The host of a proxy registry, like Sonatype Nexus. This host is automatically removed from the images
 `MODE`                 | If set to `out` the configuration from `~/.kube-config` will be used, if left unset the kubernetes secret mounted at `/var/run/secrets/kubernetes.io/serviceaccount`
-
-### Changes introduced in v2
-Version v2 introduced the option to use a config file instead of environment variables. The main change is, that you can provide authentication tokens for hub.docker.com, quay.io and custom registries based on quay. Apart from that you can now specify multiple recipients for the update notice emails and define custom quay hosts.
-
-A sample configuration can be found in the file `config.yaml.sample`.
 
 The configuration via environment variables is deprecated and will be removed in v3.
 
