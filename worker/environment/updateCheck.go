@@ -2,7 +2,8 @@ package environment
 
 import (
 	apiv1 "k8s.io/api/core/v1"
-	container "kubernetes-pod-version-checker/container"
+	"kubernetes-pod-version-checker/config"
+	"kubernetes-pod-version-checker/container"
 	"kubernetes-pod-version-checker/container/docker"
 	"kubernetes-pod-version-checker/container/quay"
 	"kubernetes-pod-version-checker/messaging"
@@ -10,7 +11,7 @@ import (
 	"strings"
 )
 
-func CheckContainerForUpdates(c apiv1.Container, parentName string, entityType string, mailChan chan messaging.Message, cpu int, logf func(message string, data ...interface{})) {
+func CheckContainerForUpdates(configuration *config.Configuration, c apiv1.Container, parentName string, entityType string, cpu int, logf func(message string, data ...interface{})) {
 	logf("Check for container image %s", c.Image)
 	imageAndVersion := strings.Split(c.Image, ":")
 
@@ -18,19 +19,19 @@ func CheckContainerForUpdates(c apiv1.Container, parentName string, entityType s
 	image = strings.ReplaceAll(image, os.Getenv("CUSTOM_REGISTRY_HOST"), "")
 
 	var (
-		tagList *container.TagList
+		tagList *config.TagList
 		err     error
 	)
 
 	if strings.HasPrefix(image, "quay.io") {
-		quayRegistry := container.NewQuayIo()
+		quayRegistry := config.NewQuayIo()
 		tagList, err = quay.Check(image, quayRegistry, logf)
 		if err != nil {
 			logf(err.Error())
 			return
 		}
 	} else {
-		dockerRegistry := container.NewDockerHub()
+		dockerRegistry := config.NewDockerHub()
 		tagList, err = docker.Check(image, dockerRegistry, logf)
 		if err != nil {
 			logf(err.Error())
@@ -45,13 +46,19 @@ func CheckContainerForUpdates(c apiv1.Container, parentName string, entityType s
 
 	tagVersion, outdated := container.CheckVersions(currentVersion, tagList, logf)
 	if outdated {
-		mailChan <- messaging.Message{
+		message := messaging.Message{
 			UsedVersion:   currentVersion,
 			LatestVersion: tagVersion,
 			Image:         image,
 			ParentName:    parentName,
 			EntityType:    entityType,
 			Cpu:           cpu,
+		}
+		if configuration.Mailer != nil {
+			err = configuration.Mailer.SendMail(message)
+			if err != nil {
+				logf(err.Error())
+			}
 		}
 	}
 }

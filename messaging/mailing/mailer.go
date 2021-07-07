@@ -30,7 +30,7 @@ func New(to []string, from string, username string, password string, host string
 }
 
 func (mailer Mailer) SendMail(message messaging.Message) error {
-	tmpl, err := template.New("email").ParseFiles("mailing/mail-body.gohtml")
+	tmpl, err := template.New("email").ParseFiles("messaging/mailing/mail-body.gohtml")
 	if err != nil {
 		return err
 	}

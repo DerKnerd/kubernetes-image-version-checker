@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"kubernetes-pod-version-checker/container"
+	"kubernetes-pod-version-checker/config"
 	"kubernetes-pod-version-checker/container/imageCache"
 	"net/http"
 )
@@ -13,8 +13,8 @@ type authentication struct {
 	Token string `json:"token"`
 }
 
-func Check(image string, registry container.Registry, logf func(message string, data ...interface{})) (*container.TagList, error) {
-	tags := new(container.TagList)
+func Check(image string, registry config.Registry, logf func(message string, data ...interface{})) (*config.TagList, error) {
+	tags := new(config.TagList)
 	if tagList := imageCache.Check(image, logf); tagList != nil {
 		return tagList, nil
 	}

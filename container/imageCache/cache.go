@@ -1,14 +1,14 @@
 package imageCache
 
 import (
-	"kubernetes-pod-version-checker/container"
+	"kubernetes-pod-version-checker/config"
 	"sync"
 )
 
-var CheckedImages = map[string]*container.TagList{}
+var CheckedImages = map[string]*config.TagList{}
 var checkImageMutex = sync.Mutex{}
 
-func Check(image string, logf func(message string, data ...interface{})) *container.TagList {
+func Check(image string, logf func(message string, data ...interface{})) *config.TagList {
 	logf("Check if %s is in cache", image)
 	checkImageMutex.Lock()
 	if CheckedImages[image] != nil {
@@ -20,7 +20,7 @@ func Check(image string, logf func(message string, data ...interface{})) *contai
 	return nil
 }
 
-func Add(image string, tags *container.TagList) {
+func Add(image string, tags *config.TagList) {
 	checkImageMutex.Lock()
 	CheckedImages[image] = tags
 	checkImageMutex.Unlock()

@@ -1,10 +1,10 @@
 package worker
 
 import (
+	"kubernetes-pod-version-checker/config"
 	"kubernetes-pod-version-checker/container"
 	"kubernetes-pod-version-checker/kubernetes"
 	"kubernetes-pod-version-checker/logging"
-	"kubernetes-pod-version-checker/messaging"
 	"kubernetes-pod-version-checker/messaging/mailing"
 	"kubernetes-pod-version-checker/worker/environment"
 	"log"
@@ -32,26 +32,23 @@ func ExecuteWithEnvironment() error {
 		return err
 	}
 
-	containerChan := make(chan container.Details)
+	containerChan := make(chan config.Details)
 	logChan := make(chan string)
-	mailChan := make(chan messaging.Message)
 
-	for i := 0; i < runtime.NumCPU(); i++ {
-		log.Printf("MAIN:  Start process on cpu %d", i)
-		go container.ProcessContainer(wg, containerChan, logChan, mailChan, i, environment.CheckContainerForUpdates)
-	}
-
-	mailer := mailing.New(
+	configuration := &config.Configuration{Mailer: mailing.New(
 		[]string{os.Getenv("MAILING_TO")},
 		os.Getenv("MAILING_FROM"),
 		os.Getenv("MAILING_USERNAME"),
 		os.Getenv("MAILING_PASSWORD"),
 		os.Getenv("MAILING_HOST"),
 		os.Getenv("MAILING_PORT"),
-	)
+	)}
+	for i := 0; i < runtime.NumCPU(); i++ {
+		log.Printf("MAIN:  Start process on cpu %d", i)
+		go container.ProcessContainer(wg, configuration, containerChan, logChan, i, environment.CheckContainerForUpdates)
+	}
 
 	go logging.Processor(logChan)
-	go mailing.Processor(mailer, mailChan, logChan)
 
 	for _, c := range kubernetes.ExtractContainer(clientset, ignoreNamespaces) {
 		containerChan <- c
@@ -60,7 +57,6 @@ func ExecuteWithEnvironment() error {
 	close(containerChan)
 
 	wg.Wait()
-	close(mailChan)
 	close(logChan)
 
 	return nil

@@ -5,15 +5,15 @@ import (
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"kubernetes-pod-version-checker/container"
+	"kubernetes-pod-version-checker/config"
 	"kubernetes-pod-version-checker/utils"
 	"log"
 )
 
-func addContainer(containers []apiv1.Container, entityType string, name string) []container.Details {
-	var result []container.Details
+func addContainer(containers []apiv1.Container, entityType string, name string) []config.Details {
+	var result []config.Details
 	for _, c := range containers {
-		result = append(result, container.Details{
+		result = append(result, config.Details{
 			Container:  c,
 			ParentName: name,
 			EntityType: entityType,
@@ -23,8 +23,8 @@ func addContainer(containers []apiv1.Container, entityType string, name string) 
 	return result
 }
 
-func ExtractContainer(clientset *kubernetes.Clientset, ignoreNamespaces []string) []container.Details {
-	containers := make([]container.Details, 0)
+func ExtractContainer(clientset *kubernetes.Clientset, ignoreNamespaces []string) []config.Details {
+	containers := make([]config.Details, 0)
 
 	log.Println("MAIN:  Look for deployments on kubernetes cluster")
 	deployments, err := clientset.AppsV1().Deployments(apiv1.NamespaceAll).List(context.Background(), metav1.ListOptions{})

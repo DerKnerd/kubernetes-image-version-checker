@@ -2,11 +2,12 @@ package container
 
 import (
 	"github.com/hashicorp/go-version"
+	"kubernetes-pod-version-checker/config"
 	"sort"
 	"strings"
 )
 
-func CheckVersions(currentVersion string, tagList *TagList, logf func(message string, data ...interface{})) (tagVersion string, outdated bool) {
+func CheckVersions(currentVersion string, tagList *config.TagList, logf func(message string, data ...interface{})) (tagVersion string, outdated bool) {
 	if currentVersion == "latest" || currentVersion == "" {
 		return
 	}
