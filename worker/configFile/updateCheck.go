@@ -59,7 +59,7 @@ func CheckContainerForUpdates(registries []config.Registry) func(*config.Configu
 			currentVersion = imageAndVersion[1]
 		}
 
-		tagVersion, outdated := container.CheckVersions(currentVersion, tagList, logf)
+		tagVersion, outdated := container.CheckVersions(image, currentVersion, tagList, logf)
 		if outdated {
 			message := messaging.Message{
 				UsedVersion:   currentVersion,

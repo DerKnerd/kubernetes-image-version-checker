@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"kubernetes-pod-version-checker/config"
-	imageCache2 "kubernetes-pod-version-checker/container/imageCache"
+	"kubernetes-pod-version-checker/container/imageCache"
 	"net/http"
 	"strings"
 )
 
 func Check(image string, registry config.Registry, logf func(message string, data ...interface{})) (*config.TagList, error) {
 	tags := new(config.TagList)
-	if tagList := imageCache2.Check(image, logf); tagList != nil {
+	if tagList := imageCache.Check(image, logf); tagList != nil {
 		return tagList, nil
 	}
 
@@ -57,7 +57,7 @@ func Check(image string, registry config.Registry, logf func(message string, dat
 		tags.Tags = append(tags.Tags, k)
 	}
 	tags.Name = cImage.Name
-	imageCache2.Add(image, tags)
+	imageCache.Add(image, tags)
 
 	return tags, nil
 }

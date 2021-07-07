@@ -26,3 +26,8 @@ registries:
 telegram:
   channel_id: -10012731422234421
   bot_token: 187666612442423481:AAFVWuP8wguN6vl0p8Ey1hPzoSPFHtsOjHGZCxICk
+image_format_constraints:
+  jenkins/jenkins: \d+\.\d+-jdk11
+  quay.io/jetstack/cert-manager-webhook: v\d+\.\d+\.\d+
+  quay.io/jetstack/cert-manager-controller: v\d+\.\d+\.\d+
+  quay.io/jetstack/cert-manager-cainjector: v\d+\.\d+\.\d+

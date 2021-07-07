@@ -44,7 +44,7 @@ func CheckContainerForUpdates(configuration *config.Configuration, c apiv1.Conta
 		currentVersion = imageAndVersion[1]
 	}
 
-	tagVersion, outdated := container.CheckVersions(currentVersion, tagList, logf)
+	tagVersion, outdated := container.CheckVersions(image, currentVersion, tagList, logf)
 	if outdated {
 		message := messaging.Message{
 			UsedVersion:   currentVersion,
