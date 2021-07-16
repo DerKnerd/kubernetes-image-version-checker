@@ -13,7 +13,7 @@ require (
 	golang.org/x/oauth2 v0.0.0-20210113205817-d3ed898aa8a3 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	k8s.io/api v0.21.2
-	k8s.io/apimachinery v0.21.2
+	k8s.io/apimachinery v0.21.3
 	k8s.io/client-go v0.21.2
 	k8s.io/utils v0.0.0-20210111153108-fddb29f9d009 // indirect
 )
