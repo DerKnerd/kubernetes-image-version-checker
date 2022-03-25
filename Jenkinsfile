@@ -28,6 +28,9 @@ spec:
     }
     stages {
         stage('Push') {
+            when {
+                branch 'main'
+            }
             steps {
                 container('docker') {
                     sh "docker build -t quay.imanuel.dev/imanuel/kubernetes-version-checker:v2.$BUILD_NUMBER -f ./Dockerfile ."
