@@ -7,9 +7,9 @@ require (
 	github.com/hashicorp/go-version v1.5.0
 	github.com/scorredoira/email v0.0.0-20191107070024-dc7b732c55da
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/api v0.24.1
-	k8s.io/apimachinery v0.24.1
-	k8s.io/client-go v0.24.1
+	k8s.io/api v0.24.2
+	k8s.io/apimachinery v0.24.2
+	k8s.io/client-go v0.24.2
 )
 
 require (
