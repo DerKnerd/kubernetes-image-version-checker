@@ -2,11 +2,11 @@ package configFile
 
 import (
 	apiv1 "k8s.io/api/core/v1"
-	"kubernetes-pod-version-checker/config"
-	"kubernetes-pod-version-checker/container"
-	"kubernetes-pod-version-checker/container/docker"
-	"kubernetes-pod-version-checker/container/quay"
-	"kubernetes-pod-version-checker/messaging"
+	"kubernetes-image-version-checker/config"
+	"kubernetes-image-version-checker/container"
+	"kubernetes-image-version-checker/container/docker"
+	"kubernetes-image-version-checker/container/quay"
+	"kubernetes-image-version-checker/messaging"
 	"strings"
 )
 

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"kubernetes-pod-version-checker/config"
-	"kubernetes-pod-version-checker/container/imageCache"
+	"kubernetes-image-version-checker/config"
+	"kubernetes-image-version-checker/container/imageCache"
 	"net/http"
 	"strings"
 )

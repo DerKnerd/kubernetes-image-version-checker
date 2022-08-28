@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"kubernetes-pod-version-checker/worker"
+	"kubernetes-image-version-checker/worker"
 	"log"
 )
 

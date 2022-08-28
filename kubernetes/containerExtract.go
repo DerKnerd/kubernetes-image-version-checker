@@ -5,8 +5,8 @@ import (
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"kubernetes-pod-version-checker/config"
-	"kubernetes-pod-version-checker/utils"
+	"kubernetes-image-version-checker/config"
+	"kubernetes-image-version-checker/utils"
 	"log"
 )
 

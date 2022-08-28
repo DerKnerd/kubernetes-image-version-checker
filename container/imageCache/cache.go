@@ -1,7 +1,7 @@
 package imageCache
 
 import (
-	"kubernetes-pod-version-checker/config"
+	"kubernetes-image-version-checker/config"
 	"sync"
 )
 

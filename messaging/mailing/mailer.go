@@ -5,7 +5,7 @@ import (
 	"github.com/scorredoira/email"
 	"html/template"
 	"io/ioutil"
-	"kubernetes-pod-version-checker/messaging"
+	"kubernetes-image-version-checker/messaging"
 	"net/smtp"
 )
 

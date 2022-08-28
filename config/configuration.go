@@ -3,8 +3,8 @@ package config
 import (
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
-	"kubernetes-pod-version-checker/messaging/mailing"
-	"kubernetes-pod-version-checker/messaging/telegram"
+	"kubernetes-image-version-checker/messaging/mailing"
+	"kubernetes-image-version-checker/messaging/telegram"
 )
 
 type Configuration struct {

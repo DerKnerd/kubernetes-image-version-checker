@@ -3,7 +3,7 @@ package container
 import (
 	"fmt"
 	apiv1 "k8s.io/api/core/v1"
-	"kubernetes-pod-version-checker/config"
+	"kubernetes-image-version-checker/config"
 	"strconv"
 	"sync"
 )

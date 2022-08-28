@@ -3,7 +3,7 @@ package telegram
 import (
 	"fmt"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
-	"kubernetes-pod-version-checker/messaging"
+	"kubernetes-image-version-checker/messaging"
 )
 
 type Client struct {

@@ -2,7 +2,7 @@ package container
 
 import (
 	"github.com/hashicorp/go-version"
-	"kubernetes-pod-version-checker/config"
+	"kubernetes-image-version-checker/config"
 	"regexp"
 	"sort"
 	"strings"

@@ -1,12 +1,12 @@
 package worker
 
 import (
-	"kubernetes-pod-version-checker/config"
-	"kubernetes-pod-version-checker/container"
-	"kubernetes-pod-version-checker/kubernetes"
-	"kubernetes-pod-version-checker/logging"
-	"kubernetes-pod-version-checker/messaging/mailing"
-	"kubernetes-pod-version-checker/worker/environment"
+	"kubernetes-image-version-checker/config"
+	"kubernetes-image-version-checker/container"
+	"kubernetes-image-version-checker/kubernetes"
+	"kubernetes-image-version-checker/logging"
+	"kubernetes-image-version-checker/messaging/mailing"
+	"kubernetes-image-version-checker/worker/environment"
 	"log"
 	"os"
 	"runtime"
