@@ -1,17 +1,19 @@
 schemaVersion: 2.1.0
 metadata:
   name: kubernetes-image-version-checker
-parent:
-  id: go
-  registryUrl: 'https://registry.devfile.io'
 components:
-  - name: image-build
-    image:
-      imageName: go-image:latest
-      dockerfile:
-        uri: docker/Dockerfile
-        buildContext: .
-        rootRequired: false
+  - name: tools
+    container:
+      image: quay.io/devfile/golang:latest
+      env:
+        - name: GOPATH
+          value: /projects:/home/user/go
+        - name: GOCACHE
+          value: /tmp/.cache
+      memoryLimit: 2Gi
+      mountSources: true
+      command: ['tail']
+      args: ['-f', '/dev/null']
 projects:
   - name: kubernetes-image-version-checker
     git:
