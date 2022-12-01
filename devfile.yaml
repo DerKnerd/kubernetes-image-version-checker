@@ -4,7 +4,7 @@ metadata:
 components:
   - name: tools
     container:
-      image: quay.io/devfile/universal-developer-image:ubi8-latest
+      image: okteto/golang:1.19
       env:
         - name: GOPATH
           value: /projects:/home/user/go
