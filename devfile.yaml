@@ -13,10 +13,10 @@ components:
       memoryLimit: 2Gi
       mountSources: true
 projects:
-      - name: kubernetes-image-version-checker
-        git:
-        remotes:
-            origin: "https://gitlab.imanuel.dev/DerKnerd/kubernetes-image-version-checker.git"
+  - name: kubernetes-image-version-checker
+    git:
+      remotes:
+        origin: "https://gitlab.imanuel.dev/DerKnerd/kubernetes-image-version-checker.git"
 commands:
   - id: run-outyet
     exec:
