@@ -12,6 +12,8 @@ components:
           value: /tmp/.cache
       memoryLimit: 2Gi
       mountSources: true
+      command: ['tail']
+      args: ['-f', '/dev/null']
 projects:
   - name: kubernetes-image-version-checker
     git:
