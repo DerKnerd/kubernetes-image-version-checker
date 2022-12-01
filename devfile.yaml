@@ -12,7 +12,7 @@ components:
           value: /tmp/.cache
       memoryLimit: 2Gi
       mountSources: true
-      command: '/checode/entrypoint-volume.sh'
+      command: ['/checode/entrypoint-volume.sh']
 projects:
   - name: kubernetes-image-version-checker
     git:
