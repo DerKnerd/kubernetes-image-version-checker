@@ -1,11 +1,14 @@
 schemaVersion: 2.1.0
 metadata:
-    name: kubernetes-image-version-checker
-    version: 1.0.0
+  name: kubernetes-image-version-checker
 components:
-    name: go
+  - name: kubernetes-image-version-checker
     container:
-        image: golang
-        memoryLimit: 1024G
-        command: ['sleep', 'infinity']
-        mountSoruces: true
+      image: quay.io/devfile/universal-developer-image:ubi8-latest
+      env:
+        - name: GOPATH
+          value: /projects:/home/user/go
+        - name: GOCACHE
+          value: /tmp/.cache
+      memoryLimit: 2Gi
+      mountSources: true
