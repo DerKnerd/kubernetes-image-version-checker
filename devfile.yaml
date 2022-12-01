@@ -1,4 +1,4 @@
-schemaVersion: 2.1.0
+apiVersion: 2.1.0
 metadata:
   name: kubernetes-image-version-checker
 components:
@@ -12,7 +12,11 @@ components:
           value: /tmp/.cache
       memoryLimit: 2Gi
       mountSources: true
-
+projects:
+      - name: kubernetes-image-version-checker
+        git:
+        remotes:
+            origin: "https://gitlab.imanuel.dev/DerKnerd/kubernetes-image-version-checker.git"
 commands:
   - id: run-outyet
     exec:
