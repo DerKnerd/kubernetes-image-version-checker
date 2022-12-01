@@ -12,7 +12,7 @@ components:
       memoryLimit: 1024Mi
       mountSources: true
       env:
-        LD_LIBRARY_PATH: ""
+        - LD_LIBRARY_PATH=""
     name: runtime      
 projects:
   - name: kubernetes-image-version-checker
