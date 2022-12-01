@@ -1,0 +1,11 @@
+schemaVersion: 2.1.0
+metadata:
+    name: kubernetes-image-version-checker
+    version: 1.0.0
+components:
+    name: go
+    container:
+        image: golang
+        memoryLimit: 1024G
+        command: ['sleep', 'infinity']
+        mountSoruces: true
