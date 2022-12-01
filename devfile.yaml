@@ -11,6 +11,8 @@ components:
       args: ['tail', '-f', '/dev/null']
       memoryLimit: 1024Mi
       mountSources: true
+      env:
+        LD_LIBRARY_PATH: ""
     name: runtime      
 projects:
   - name: kubernetes-image-version-checker
