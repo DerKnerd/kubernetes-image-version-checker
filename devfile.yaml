@@ -2,18 +2,15 @@ schemaVersion: 2.1.0
 metadata:
   name: kubernetes-image-version-checker
 components:
-  - name: tools
-    container:
+  - container:
+      endpoints:
+        - name: http-go
+          targetPort: 8080
       image: quay.io/devfile/golang:latest
-      env:
-        - name: GOPATH
-          value: /projects:/home/user/go
-        - name: GOCACHE
-          value: /tmp/.cache
-      memoryLimit: 2Gi
+      args: ['tail', '-f', '/dev/null']
+      memoryLimit: 1024Mi
       mountSources: true
-      command: ['tail']
-      args: ['-f', '/dev/null']
+    name: runtime      
 projects:
   - name: kubernetes-image-version-checker
     git:
