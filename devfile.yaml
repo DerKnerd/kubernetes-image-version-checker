@@ -13,6 +13,8 @@ components:
       memoryLimit: 2Gi
       mountSources: true
       command:
+        - '/checode/entrypoint-volume.sh'
+        - '&&'
         - sleep
         - infinity
 projects:
