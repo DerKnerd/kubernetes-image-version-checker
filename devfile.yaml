@@ -4,7 +4,7 @@ metadata:
 components:
   - name: tools
     container:
-      image: quay.io/devfile/golang:latest
+      image: quay.imanuel.dev/base-images/che-golang-1.19:ac70c9d
       env:
         - name: GOPATH
           value: /projects:/home/user/go
@@ -13,8 +13,6 @@ components:
       memoryLimit: 2Gi
       mountSources: true
       command:
-        - '/checode/entrypoint-volume.sh'
-        - '&&'
         - sleep
         - infinity
 projects:
