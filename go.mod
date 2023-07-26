@@ -1,15 +1,15 @@
 module kubernetes-image-version-checker
 
-go 1.19
+go 1.20
 
 require (
 	github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible
 	github.com/hashicorp/go-version v1.6.0
 	github.com/scorredoira/email v0.0.0-20191107070024-dc7b732c55da
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/api v0.27.3
-	k8s.io/apimachinery v0.27.3
-	k8s.io/client-go v0.27.3
+	k8s.io/api v0.27.4
+	k8s.io/apimachinery v0.27.4
+	k8s.io/client-go v0.27.4
 )
 
 require (
@@ -46,7 +46,7 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	k8s.io/klog/v2 v2.100.1 // indirect
-	k8s.io/kube-openapi v0.0.0-20230614213217-ba0abe644833 // indirect
+	k8s.io/kube-openapi v0.0.0-20230501164219-8b0f38b5fd1f // indirect
 	k8s.io/utils v0.0.0-20230505201702-9f6742963106 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
