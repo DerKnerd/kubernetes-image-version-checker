@@ -3,27 +3,27 @@ stages:
   - build
 
 test:
-  image: quay.imanuel.dev/dockerhub/library---golang:1.20-alpine
+  image: harbor.ulbricht.casa/proxy/library/golang:1.21-alpine
   stage: test
   script:
     - go vet .
     - go build -o kubernetes-deployment-version-checker
 
 docker-build:
-  image: quay.imanuel.dev/dockerhub/library---docker:stable
+  image: harbor.ulbricht.casa/proxy/library/docker:stable
   stage: build
   services:
     - docker:dind
   before_script:
-    - docker login -u "$QUAY_USER" -p "$QUAY_PASSWORD" quay.imanuel.dev
+    - docker login -u "$HARBOR_USER" -p "$HARBOR_PASSWORD" harbor.ulbricht.casa
     - docker login -u "$DOCKERHUB_USER" -p "$DOCKERHUB_PASSWORD"
   script:
-    - docker build --pull -t "quay.imanuel.dev/imanuel/kubernetes-version-checker:2.0.${CI_PIPELINE_IID}" -f ./Dockerfile .
-    - docker tag "quay.imanuel.dev/imanuel/kubernetes-version-checker:2.0.${CI_PIPELINE_IID}" "quay.imanuel.dev/imanuel/kubernetes-version-checker:latest"
-    - docker tag "quay.imanuel.dev/imanuel/kubernetes-version-checker:2.0.${CI_PIPELINE_IID}" "iulbricht/kubernetes-image-version-checker:2.0.${CI_PIPELINE_IID}"
-    - docker tag "quay.imanuel.dev/imanuel/kubernetes-version-checker:2.0.${CI_PIPELINE_IID}" iulbricht/kubernetes-image-version-checker:latest
-    - docker push "quay.imanuel.dev/imanuel/kubernetes-version-checker:2.0.${CI_PIPELINE_IID}"
-    - docker push "quay.imanuel.dev/imanuel/kubernetes-version-checker:latest"
+    - docker build --pull -t "harbor.ulbricht.casa/imanuel/kubernetes-version-checker:2.0.${CI_PIPELINE_IID}" -f ./Dockerfile .
+    - docker tag "harbor.ulbricht.casa/imanuel/kubernetes-version-checker:2.0.${CI_PIPELINE_IID}" "harbor.ulbricht.casa/imanuel/kubernetes-version-checker:latest"
+    - docker tag "harbor.ulbricht.casa/imanuel/kubernetes-version-checker:2.0.${CI_PIPELINE_IID}" "iulbricht/kubernetes-image-version-checker:2.0.${CI_PIPELINE_IID}"
+    - docker tag "harbor.ulbricht.casa/imanuel/kubernetes-version-checker:2.0.${CI_PIPELINE_IID}" iulbricht/kubernetes-image-version-checker:latest
+    - docker push "harbor.ulbricht.casa/imanuel/kubernetes-version-checker:2.0.${CI_PIPELINE_IID}"
+    - docker push "harbor.ulbricht.casa/imanuel/kubernetes-version-checker:latest"
     - docker push "iulbricht/kubernetes-image-version-checker:2.0.${CI_PIPELINE_IID}"
     - docker push "iulbricht/kubernetes-image-version-checker:latest"
   rules:
@@ -32,7 +32,7 @@ docker-build:
         - Dockerfile
 
 binary-build-linux:
-  image: quay.imanuel.dev/dockerhub/library---golang:1.20-alpine
+  image: harbor.ulbricht.casa/proxy/library/golang:1.21-alpine
   stage: build
   script:
     - go build -o kubernetes-deployment-version-checker
