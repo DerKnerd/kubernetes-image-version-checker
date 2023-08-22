@@ -1,6 +1,7 @@
 stages:
   - test
   - build
+  - deploy
 
 test:
   image: harbor.ulbricht.casa/proxy/library/golang:1.21-alpine
@@ -10,22 +11,21 @@ test:
     - go build -o kubernetes-deployment-version-checker
 
 docker-build:
-  image: harbor.ulbricht.casa/proxy/library/docker:stable
-  stage: build
-  services:
-    - docker:dind
+  stage: deploy
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    pull_policy: always
+    entrypoint: [""]
   before_script:
-    - docker login -u "$HARBOR_USER" -p "$HARBOR_PASSWORD" harbor.ulbricht.casa
-    - docker login -u "$DOCKERHUB_USER" -p "$DOCKERHUB_PASSWORD"
+    - echo $KANIKO_DOCKERHUB_AND_HARBOR > /kaniko/.docker/config.json
   script:
-    - docker build --pull -t "harbor.ulbricht.casa/imanuel/kubernetes-version-checker:2.0.${CI_PIPELINE_IID}" -f ./Dockerfile .
-    - docker tag "harbor.ulbricht.casa/imanuel/kubernetes-version-checker:2.0.${CI_PIPELINE_IID}" "harbor.ulbricht.casa/imanuel/kubernetes-version-checker:latest"
-    - docker tag "harbor.ulbricht.casa/imanuel/kubernetes-version-checker:2.0.${CI_PIPELINE_IID}" "iulbricht/kubernetes-image-version-checker:2.0.${CI_PIPELINE_IID}"
-    - docker tag "harbor.ulbricht.casa/imanuel/kubernetes-version-checker:2.0.${CI_PIPELINE_IID}" iulbricht/kubernetes-image-version-checker:latest
-    - docker push "harbor.ulbricht.casa/imanuel/kubernetes-version-checker:2.0.${CI_PIPELINE_IID}"
-    - docker push "harbor.ulbricht.casa/imanuel/kubernetes-version-checker:latest"
-    - docker push "iulbricht/kubernetes-image-version-checker:2.0.${CI_PIPELINE_IID}"
-    - docker push "iulbricht/kubernetes-image-version-checker:latest"
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+      --destination "harbor.ulbricht.casa/imanuel/kubernetes-version-checker:2.0.${CI_PIPELINE_IID}"
+      --destination "harbor.ulbricht.casa/imanuel/kubernetes-version-checker:latest"
+      --destination "iulbricht/kubernetes-version-checker:2.0.${CI_PIPELINE_IID}"
+      --destination "iulbricht/kubernetes-version-checker:latest"
   rules:
     - if: $CI_COMMIT_BRANCH == "v2"
       exists:
